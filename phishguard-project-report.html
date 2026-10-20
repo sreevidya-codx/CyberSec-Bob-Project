@@ -1,0 +1,559 @@
+
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PhishGuard – Project Report</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.7;
+    color: #1f2328;
+    background: #ffffff;
+  }
+
+  .page {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 48px 32px 64px;
+  }
+
+  /* ── Cover ── */
+  .cover {
+    text-align: center;
+    padding: 40px 0 36px;
+    border-bottom: 2px solid #e5e7eb;
+    margin-bottom: 40px;
+  }
+  .cover-badge {
+    display: inline-block;
+    background: #1e3a5f;
+    color: #bfdbfe;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding: 4px 14px;
+    border-radius: 20px;
+    margin-bottom: 18px;
+  }
+  .cover h1 {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.2;
+    margin-bottom: 10px;
+  }
+  .cover h1 span { color: #3b82d4; }
+  .cover .subtitle {
+    font-size: 1rem;
+    color: #57606a;
+    margin-bottom: 28px;
+  }
+  .author-block {
+    display: inline-block;
+    margin: 18px auto 0;
+    background: #f7f8fa;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 14px 32px;
+  }
+  .author-block .author-label {
+    font-size: 11px;
+    color: #57606a;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .author-block .author-name {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #1e3a5f;
+  }
+  .meta-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-top: 24px;
+    text-align: left;
+  }
+  .meta-item {
+    background: #f7f8fa;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 12px 16px;
+  }
+  .meta-item .label { font-size: 11px; color: #57606a; text-transform: uppercase; letter-spacing: .06em; font-weight: 600; margin-bottom: 3px; }
+  .meta-item .value { font-size: 13px; font-weight: 600; color: #1f2328; }
+
+  /* ── Sections ── */
+  h2 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #0f172a;
+    border-left: 4px solid #3b82d4;
+    padding-left: 12px;
+    margin: 36px 0 14px;
+  }
+  h3 {
+    font-size: .95rem;
+    font-weight: 700;
+    color: #1f2328;
+    margin: 20px 0 8px;
+  }
+  p { color: #374151; margin-bottom: 10px; }
+  ul, ol { padding-left: 20px; color: #374151; margin-bottom: 10px; }
+  li { margin-bottom: 5px; }
+
+  /* ── Callout boxes ── */
+  .callout {
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 14px 0;
+    border-left: 4px solid;
+    font-size: 13.5px;
+  }
+  .callout-blue  { background: #eff6ff; border-color: #3b82d4; color: #1e3a5f; }
+  .callout-green { background: #f0fdf4; border-color: #22c55e; color: #14532d; }
+  .callout-amber { background: #fffbeb; border-color: #f59e0b; color: #78350f; }
+
+  /* ── Rule table ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin: 12px 0 18px;
+  }
+  thead th {
+    background: #1e3a5f;
+    color: #bfdbfe;
+    font-weight: 600;
+    text-align: left;
+    padding: 9px 12px;
+    font-size: 12px;
+    letter-spacing: .04em;
+  }
+  tbody tr:nth-child(odd)  { background: #f7f8fa; }
+  tbody tr:nth-child(even) { background: #ffffff; }
+  tbody tr:hover           { background: #eff6ff; }
+  td { padding: 8px 12px; color: #374151; vertical-align: top; }
+  td:first-child { font-weight: 500; color: #0f172a; }
+
+  /* ── Risk badge ── */
+  .badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 12px;
+    letter-spacing: .04em;
+  }
+  .badge-high   { background: #fee2e2; color: #991b1b; }
+  .badge-medium { background: #fef3c7; color: #92400e; }
+  .badge-low    { background: #d1fae5; color: #065f46; }
+
+  /* ── Stat row ── */
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin: 16px 0;
+  }
+  .stat-box {
+    background: #f7f8fa;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 14px 12px;
+    text-align: center;
+  }
+  .stat-box .num  { font-size: 1.6rem; font-weight: 800; color: #0f172a; line-height: 1.1; }
+  .stat-box .lbl  { font-size: 11px; color: #57606a; margin-top: 3px; }
+  .stat-box.blue  .num { color: #3b82d4; }
+  .stat-box.red   .num { color: #ef4444; }
+  .stat-box.amber .num { color: #f59e0b; }
+  .stat-box.green .num { color: #10b981; }
+
+  /* ── Tech stack pills ── */
+  .tech-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 16px; }
+  .tech-pill {
+    background: #f7f8fa;
+    border: 1px solid #e5e7eb;
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #1f2328;
+  }
+
+  /* ── Divider ── */
+  hr { border: none; border-top: 1px solid #e5e7eb; margin: 32px 0; }
+
+  /* ── Architecture diagram (SVG-based) ── */
+  .arch-wrap { background: #f7f8fa; border: 1px solid #e5e7eb; border-radius: 10px; padding: 20px; margin: 14px 0; }
+
+  /* ── Score tier table color dots ── */
+  .dot { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:6px; vertical-align:middle; }
+  .dot-red    { background:#ef4444; }
+  .dot-amber  { background:#f59e0b; }
+  .dot-green  { background:#10b981; }
+
+  /* ── Footer ── */
+  .footer {
+    margin-top: 60px;
+    padding-top: 16px;
+    border-top: 1px solid #e5e7eb;
+    text-align: center;
+    font-size: 11.5px;
+    color: #8b949e;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  
+  <div class="cover">
+    <div class="cover-badge">Cyber Security · Project Report</div>
+    <h1>🛡️ <span>PhishGuard</span></h1>
+    <div class="subtitle">Rule-Based Phishing Detection System</div>
+
+    <div class="author-block">
+      <div class="author-label">Submitted by</div>
+      <div class="author-name">Sreevidya Sojan</div>
+    </div>
+
+    <div class="meta-grid">
+      <div class="meta-item"><div class="label">Project Type</div><div class="value">Web Application</div></div>
+      <div class="meta-item"><div class="label">Domain</div><div class="value">Cyber Security</div></div>
+      <div class="meta-item"><div class="label">Technology</div><div class="value">Python · Streamlit</div></div>
+      <div class="meta-item"><div class="label">Detection Method</div><div class="value">Rule-based Scoring</div></div>
+      <div class="meta-item"><div class="label">Scan Targets</div><div class="value">URLs &amp; Email Text</div></div>
+      <div class="meta-item"><div class="label">External APIs</div><div class="value">None (fully offline)</div></div>
+    </div>
+  </div>
+
+
+  
+  <h2>1. Introduction</h2>
+  <p>
+    PhishGuard is a real-time phishing detection web application that analyses user-supplied
+    URLs and email body text for known phishing indicators. The system employs a transparent,
+    explainable rule-based scoring engine — every risk verdict is backed by human-readable
+    explanations of exactly <em>why</em> a URL or email was flagged, rather than a black-box
+    machine-learning decision.
+  </p>
+  <div class="callout callout-blue">
+    <strong>Core motivation:</strong> Phishing remains one of the leading vectors for
+    credential theft and malware delivery. Most detection tools either require cloud
+    connectivity, offer no explanation for their verdicts, or demand ML infrastructure.
+    PhishGuard is entirely self-contained and runs locally with zero external dependencies
+    beyond standard Python libraries.
+  </div>
+
+
+  
+  <h2>2. Objectives</h2>
+  <ul>
+    <li>Provide instant, explainable risk verdicts for any URL or email text without requiring an internet connection or API keys.</li>
+    <li>Surface the specific indicators that contributed to a risk score so non-technical users understand the threat.</li>
+    <li>Classify threats into three actionable tiers — <span class="badge badge-low">Low</span>, <span class="badge badge-medium">Medium</span>, and <span class="badge badge-high">High</span> — each paired with concrete safety recommendations.</li>
+    <li>Demonstrate that a deterministic, rule-driven approach can cover the most common phishing patterns observed in the wild.</li>
+    <li>Deliver an accessible, professional-grade UI with no installation burden for the end user.</li>
+  </ul>
+
+
+  
+  <h2>3. Technology Stack</h2>
+  <div class="tech-row">
+    <span class="tech-pill">Python 3.10+</span>
+    <span class="tech-pill">Streamlit</span>
+    <span class="tech-pill">Plotly Express</span>
+    <span class="tech-pill">Pandas</span>
+    <span class="tech-pill">re (stdlib)</span>
+    <span class="tech-pill">urllib.parse (stdlib)</span>
+    <span class="tech-pill">HTML / CSS</span>
+  </div>
+  <table>
+    <thead><tr><th>Component</th><th>Library / Tool</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td>Web UI</td><td>Streamlit</td><td>Reactive single-page application framework; handles state, layout, and reruns.</td></tr>
+      <tr><td>Detection Engine</td><td>Python stdlib (re, urllib)</td><td>All rule matching via compiled regular expressions; no ML or third-party data feeds.</td></tr>
+      <tr><td>Data Table</td><td>Pandas + st.dataframe</td><td>Renders the 20-record sample scan-history table with custom column types.</td></tr>
+      <tr><td>Charts</td><td>Plotly Express</td><td>Interactive bar chart showing risk distribution of sample records.</td></tr>
+      <tr><td>Styling</td><td>Inline CSS (injected via st.markdown)</td><td>Custom dark-theme UI with branded header, stat cards, and result panels.</td></tr>
+    </tbody>
+  </table>
+
+
+  
+  <h2>4. System Architecture</h2>
+  <div class="arch-wrap">
+    <svg xmlns="http://www.w3.org/2000/svg" style="width:100%;font-family:-apple-system,'Segoe UI',sans-serif">
+      
+      <rect x="10" y="80" width="120" height="60" rx="8" fill="#eff6ff" stroke="#3b82d4" stroke-width="1.5"></rect>
+      <text x="70" y="107" text-anchor="middle" font-size="11" font-weight="700" fill="#1e3a5f">User Input</text>
+      <text x="70" y="122" text-anchor="middle" font-size="10" fill="#3b82d4">URL or Email Text</text>
+
+      
+      <line x1="130" y1="110" x2="178" y2="110" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr)"></line>
+
+      
+      <rect x="178" y="72" width="130" height="76" rx="8" fill="#f7f8fa" stroke="#e5e7eb" stroke-width="1.5"></rect>
+      <text x="243" y="102" text-anchor="middle" font-size="11" font-weight="700" fill="#1f2328">Streamlit UI</text>
+      <text x="243" y="118" text-anchor="middle" font-size="9.5" fill="#57606a">Scanner selector</text>
+      <text x="243" y="132" text-anchor="middle" font-size="9.5" fill="#57606a">Input widgets · session_state</text>
+
+      
+      <line x1="308" y1="110" x2="356" y2="110" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr)"></line>
+
+      
+      <rect x="356" y="60" width="148" height="100" rx="8" fill="#fefce8" stroke="#f59e0b" stroke-width="1.5"></rect>
+      <text x="430" y="88" text-anchor="middle" font-size="11" font-weight="700" fill="#78350f">Detection Engine</text>
+      <text x="430" y="104" text-anchor="middle" font-size="9.5" fill="#92400e">_score_url()  ·  _score_email()</text>
+      <text x="430" y="118" text-anchor="middle" font-size="9.5" fill="#92400e">14 URL rules  ·  13 email rules</text>
+      <text x="430" y="132" text-anchor="middle" font-size="9.5" fill="#92400e">Additive weighted scoring</text>
+      <text x="430" y="146" text-anchor="middle" font-size="9.5" fill="#92400e">_risk_level() → Low/Med/High</text>
+
+      
+      <line x1="504" y1="110" x2="552" y2="110" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr)"></line>
+
+      
+      <rect x="552" y="75" width="118" height="70" rx="8" fill="#f0fdf4" stroke="#22c55e" stroke-width="1.5"></rect>
+      <text x="611" y="102" text-anchor="middle" font-size="11" font-weight="700" fill="#14532d">Results Panel</text>
+      <text x="611" y="118" text-anchor="middle" font-size="9.5" fill="#166534">Risk meter · Alerts</text>
+      <text x="611" y="132" text-anchor="middle" font-size="9.5" fill="#166534">Indicators · Recommendations</text>
+
+      
+      <defs>
+        <marker id="arr">
+          <path d="M0,0 L0,6 L8,3 z" fill="#94a3b8"></path>
+        </marker>
+      </defs>
+
+      
+      <text x="340" y="200" text-anchor="middle" font-size="10" fill="#94a3b8">Pure Python regex rules — no ML, no network calls, no API keys</text>
+    </svg>
+  </div>
+
+
+  
+  <h2>5. Detection Engine</h2>
+  <p>
+    The engine contains two independent scoring functions. Each function applies a fixed set
+    of if-statement rules against the input string. Every fired rule appends a human-readable
+    explanation to a warnings list and adds its weight to a running total score.
+    The final score is compared against the maximum possible score (245 pts for both URL and
+    email) to produce a percentage, which maps to a risk tier.
+  </p>
+
+  <div class="callout callout-amber">
+    <strong>Scoring formula:</strong> risk % = (raw score / 245) × 100  · 
+    &lt; 15% → Low  ·  15–35% → Medium  ·  &gt; 35% → High
+  </div>
+
+  <h3>5.1 URL Scoring Rules — <code>_score_url()</code> · Max 245 pts</h3>
+  <table>
+    <thead><tr><th>#</th><th>Rule</th><th>Weight</th><th>Phishing Technique Targeted</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Raw IP address in URL</td><td>25 pts</td><td>Avoids registering a traceable domain</td></tr>
+      <tr><td>2</td><td>Suspicious TLD (.xyz, .tk, .ml, .cf …)</td><td>20 pts</td><td>Free/cheap TLDs heavily abused in campaigns</td></tr>
+      <tr><td>3</td><td>Excessive subdomain depth (4+ levels)</td><td>15 pts</td><td>Hides the real domain at end of chain</td></tr>
+      <tr><td>4</td><td>'@' symbol in URL</td><td>20 pts</td><td>Browsers silently load the domain after '@'</td></tr>
+      <tr><td>5</td><td>Hyphenated login/secure/account keyword</td><td>20 pts</td><td>Impersonates brands without owning their domain</td></tr>
+      <tr><td>6</td><td>URL length &gt; 75 characters</td><td>10 pts</td><td>Hides destination in overlong query strings</td></tr>
+      <tr><td>7</td><td>URL shortener (bit.ly, tinyurl …)</td><td>20 pts</td><td>Completely masks the real destination</td></tr>
+      <tr><td>8</td><td>HTTP instead of HTTPS</td><td>15 pts</td><td>No TLS; no CA-validated identity</td></tr>
+      <tr><td>9</td><td>Double slashes in path</td><td>10 pts</td><td>Confuses URL parsers / filter bypasses</td></tr>
+      <tr><td>10</td><td>Non-standard port (:8080, :3000 …)</td><td>15 pts</td><td>Indicates hastily deployed phishing kit</td></tr>
+      <tr><td>11</td><td>Punycode / IDN homograph (xn--)</td><td>25 pts</td><td>Unicode look-alike domains (apple vs аpple)</td></tr>
+      <tr><td>12</td><td>Sensitive keyword in path/query</td><td>15 pts</td><td>Credential-harvesting page mimicry</td></tr>
+      <tr><td>13</td><td>Heavy percent-encoding (3+ sequences)</td><td>10 pts</td><td>Obfuscates path; evades keyword scanners</td></tr>
+      <tr><td>14</td><td>Brand name as subdomain of different TLD</td><td>25 pts</td><td>paypal.evil.com subdomain spoofing</td></tr>
+    </tbody>
+  </table>
+
+  <h3>5.2 Email Scoring Rules — <code>_score_email()</code> · Max 245 pts</h3>
+  <table>
+    <thead><tr><th>#</th><th>Rule</th><th>Weight</th><th>Social-Engineering Technique Targeted</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Urgency / threat language</td><td>20 pts</td><td>"Act now", "account suspended", "within 24 hours"</td></tr>
+      <tr><td>2</td><td>Explicit credential request</td><td>25 pts</td><td>"Enter your password / verify your identity"</td></tr>
+      <tr><td>3</td><td>Vague CTA anchor text</td><td>15 pts</td><td>"Click here", "follow this link"</td></tr>
+      <tr><td>4</td><td>Lottery / prize scam language</td><td>25 pts</td><td>"You have won", "claim your reward"</td></tr>
+      <tr><td>5</td><td>Misspelled brand name</td><td>20 pts</td><td>paypa1, amaz0n, g00gle — evades keyword filters</td></tr>
+      <tr><td>6</td><td>Generic impersonal greeting</td><td>10 pts</td><td>"Dear Customer / Dear User"</td></tr>
+      <tr><td>7</td><td>Account closure / suspension threat</td><td>20 pts</td><td>Panic-click on fake "verify now" link</td></tr>
+      <tr><td>8</td><td>Open/download attachment instruction</td><td>20 pts</td><td>Malicious attachment delivery</td></tr>
+      <tr><td>9</td><td>Money transfer / crypto request</td><td>25 pts</td><td>BEC fraud, ransomware, romance scams</td></tr>
+      <tr><td>10</td><td>Fake security alert language</td><td>15 pts</td><td>"Unusual sign-in", "unauthorised access"</td></tr>
+      <tr><td>11</td><td>Excessive ALL-CAPS or exclamation marks</td><td>10 pts</td><td>Spam-style aggressive formatting</td></tr>
+      <tr><td>12</td><td>Reply with sensitive info request</td><td>25 pts</td><td>Direct credential extraction via reply</td></tr>
+      <tr><td>13</td><td>Financial bait language</td><td>15 pts</td><td>"Free gift card", "pre-approved loan"</td></tr>
+    </tbody>
+  </table>
+
+
+  
+  <h2>6. Risk Classification &amp; Recommendations</h2>
+  <table>
+    <thead><tr><th>Tier</th><th>Score %</th><th>Raw Score (approx.)</th><th>UI Colour</th><th>Action Prescribed</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><span class="badge badge-low">Low</span></td>
+        <td>&lt; 15%</td>
+        <td>0 – 36 pts</td>
+        <td><span class="dot dot-green"></span>#10b981</td>
+        <td>Appears safe; general hygiene reminders.</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-medium">Medium</span></td>
+        <td>15 – 35%</td>
+        <td>37 – 85 pts</td>
+        <td><span class="dot dot-amber"></span>#f59e0b</td>
+        <td>Do not enter credentials; verify source independently.</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-high">High</span></td>
+        <td>&gt; 35%</td>
+        <td>86 + pts</td>
+        <td><span class="dot dot-red"></span>#ef4444</td>
+        <td>Do NOT proceed; delete message; change passwords if visited; report to IT.</td>
+      </tr>
+    </tbody>
+  </table>
+  <p>
+    Each tier exposes a separate recommendations dictionary (<code>URL_RECOMMENDATIONS</code> /
+    <code>EMAIL_RECOMMENDATIONS</code>) that maps directly to the verdict, ensuring users always
+    receive tier-appropriate guidance without any extra branching logic.
+  </p>
+
+
+  
+  <h2>7. User Interface Features</h2>
+  <ul>
+    <li><strong>Header Bar</strong> — branded PhishGuard logo with a live "System Active" status indicator.</li>
+    <li><strong>Dashboard Stats</strong> — four KPI cards (Total Scans, Threats Detected, High-Risk Threats, Safe Results) derived from <code>session_state</code> on every rerun; seeded with 248 demo records to demonstrate scale.</li>
+    <li><strong>Scanner Selector</strong> — two buttons switch between URL Scanner and Email Scanner modes; the active scanner is persisted in <code>session_state</code>.</li>
+    <li><strong>URL Scanner</strong> — auto-prepends <code>https://</code> if the user omits a scheme; shows a structured breakdown table (Scheme, Domain, Path, Query, Length) alongside the result panel.</li>
+    <li><strong>Email Scanner</strong> — accepts multi-line paste of subject + body; shows word count, URL count, email address count, and character count in a breakdown table.</li>
+    <li><strong>Result Panel</strong> — circular SVG arc risk meter (0–100 normalised score), colour-coded alert banner, per-indicator severity pills (HIGH / MED), breakdown table, and safety recommendations.</li>
+    <li><strong>Sample Data Table</strong> — 20 pre-scored records rendered via <code>st.dataframe</code> with custom column config; accompanied by a Plotly bar chart showing risk distribution.</li>
+    <li><strong>Dark Theme</strong> — fully custom CSS injected via <code>st.markdown</code>; midnight-blue palette with Inter font.</li>
+  </ul>
+
+
+  
+  <h2>8. Sample Dataset Overview</h2>
+  <p>The application ships with 20 pre-labelled scan records to demonstrate range across all risk tiers:</p>
+  <div class="stat-row">
+    <div class="stat-box"><div class="num">20</div><div class="lbl">Total Sample Records</div></div>
+    <div class="stat-box red"><div class="num">8</div><div class="lbl">High Risk</div></div>
+    <div class="stat-box amber"><div class="num">6</div><div class="lbl">Medium Risk</div></div>
+    <div class="stat-box green"><div class="num">6</div><div class="lbl">Low / Safe</div></div>
+  </div>
+  <p>
+    Sample records cover a wide attack surface: raw-IP URLs, misspelled brand emails,
+    URL shortener links, crypto transfer requests, lottery scam text, and clean legitimate
+    URLs (GitHub, Python Docs) to validate true-negative handling.
+  </p>
+
+
+  
+  <h2>9. Key Design Decisions</h2>
+
+  <h3>Rule-based over ML</h3>
+  <p>
+    A deliberate choice was made to use explicit if-statement rules instead of a trained
+    classifier. This keeps the system fully auditable — every verdict can be traced to
+    a named rule with a defined weight — and eliminates the need for a labelled training
+    dataset, GPU inference, or model update pipelines.
+  </p>
+
+  <h3>Additive weighted scoring</h3>
+  <p>
+    Rules carry individual weights (10–25 pts) reflecting empirical severity. Lighter rules
+    (double-slash paths, URL length) rarely appear alone in real phishing; heavier rules
+    (IP-only domains, punycode, brand-spoofing subdomains) are decisive signals. The additive
+    model means multiple weak signals accumulate into a meaningful verdict.
+  </p>
+
+  <h3>No external APIs</h3>
+  <p>
+    Every detection rule operates entirely on the input string. There are no calls to
+    WHOIS databases, VirusTotal, Google Safe Browsing, or any cloud service.
+    This makes the application usable offline and removes rate limits and API-key management.
+  </p>
+
+  <h3>Session state for stats</h3>
+  <p>
+    Streamlit re-executes the entire script on every interaction. Rather than incrementing
+    a persistent counter (which would inflate figures across reruns), dashboard stats are
+    derived at render time from the current <code>session_state</code> keys
+    (<code>url_result</code>, <code>email_result</code>), seeded with realistic baseline numbers.
+  </p>
+
+
+  
+  <h2>10. Limitations &amp; Future Work</h2>
+  <div class="callout callout-amber">
+    <strong>Current limitations:</strong>
+    <ul style="margin-top:6px">
+      <li>Rules target textual patterns only — zero-day phishing kits using clean URLs with deceptive page content are not detectable.</li>
+      <li>No URL resolution: shortened URLs (bit.ly etc.) are flagged but not followed to their destination.</li>
+      <li>No sender/header analysis for emails — only body text is inspected.</li>
+      <li>Regex rules cannot catch brand-new TLD abuse until the pattern list is updated.</li>
+    </ul>
+  </div>
+  <div class="callout callout-green">
+    <strong>Potential enhancements:</strong>
+    <ul style="margin-top:6px">
+      <li>Integrate a URL-unshortening resolver to follow redirect chains before scoring.</li>
+      <li>Add WHOIS age check: domains registered in the last 30 days carry extra weight.</li>
+      <li>Email header parser to flag spoofed <code>From:</code> addresses and failed SPF/DKIM.</li>
+      <li>Exportable PDF report of scan results for enterprise incident response use.</li>
+      <li>Optional ML layer (logistic regression on TF-IDF features) as a secondary signal.</li>
+    </ul>
+  </div>
+
+
+  
+  <h2>11. Running the Application</h2>
+  <table>
+    <thead><tr><th>Step</th><th>Command / Action</th></tr></thead>
+    <tbody>
+      <tr><td>1. Install dependencies</td><td><code>pip install streamlit pandas plotly</code></td></tr>
+      <tr><td>2. Launch app</td><td><code>streamlit run app.py</code></td></tr>
+      <tr><td>3. Open in browser</td><td>Navigate to <code>http://localhost:8501</code></td></tr>
+      <tr><td>4. Scan a URL</td><td>Click "URL Scanner", paste any URL, press "Scan URL"</td></tr>
+      <tr><td>5. Scan an email</td><td>Click "Email Scanner", paste email body, press "Scan Email"</td></tr>
+      <tr><td>6. View sample data</td><td>Click "Generate Sample Data" to load the 20-record history table</td></tr>
+    </tbody>
+  </table>
+
+
+  
+  <h2>12. Conclusion</h2>
+  <p>
+    PhishGuard successfully demonstrates that a transparent, rule-driven phishing detector
+    can be built entirely in Python using only the standard library and a lightweight UI
+    framework. The system covers 27 distinct phishing techniques across URL and email
+    attack vectors, classifies threats into actionable tiers, and presents its reasoning
+    in plain language accessible to non-technical users.
+  </p>
+  <p>
+    The project serves as a strong foundation for further research into hybrid detection
+    approaches, and as a practical educational tool for understanding common phishing
+    patterns and why they are effective.
+  </p>
+
+  <hr />
+
+  <div class="footer">Made with IBM Bob</div>
+
+</div>
+</body>
+</html>
